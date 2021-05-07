@@ -52,11 +52,6 @@ public class ResultSlotButton extends ItemInputButton<CCCache> {
         }, (cache, guiHandler, player, inventory, itemStack, slot, event) -> {
             EliteWorkbench eliteWorkbench = cache.getEliteWorkbench();
             if (inventory.getWindow() instanceof CraftingWindow) {
-                CraftingWindow craftingWindow = (CraftingWindow) inventory.getWindow();
-                for (int i = 0; i < eliteWorkbench.getContents().length; i++) {
-                    int invSlot = craftingWindow.getGridX() + i + (i / eliteWorkbench.getCurrentGridSize()) * (9 - eliteWorkbench.getCurrentGridSize());
-                    inventory.setItem(invSlot, eliteWorkbench.getContents()[i]);
-                }
                 eliteWorkbench.setResult(null);
             }
         }, (cache, guiHandler, player, inventory, itemStack, slot, b) -> {
