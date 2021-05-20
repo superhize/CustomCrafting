@@ -8,10 +8,7 @@ import me.wolfyscript.customcrafting.utils.recipe_item.target.EmptyTarget;
 import me.wolfyscript.customcrafting.utils.recipe_item.target.ResultTarget;
 import me.wolfyscript.utilities.api.inventory.custom_items.CustomItem;
 import me.wolfyscript.utilities.api.inventory.custom_items.references.APIReference;
-import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonCreator;
-import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonIgnore;
-import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonInclude;
-import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonProperty;
+import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.*;
 import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.databind.JsonNode;
 import me.wolfyscript.utilities.util.NamespacedKey;
 import me.wolfyscript.utilities.util.RandomCollection;
@@ -28,6 +25,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Result<T extends ResultTarget> extends RecipeItemStack {
 
     @JsonIgnore
