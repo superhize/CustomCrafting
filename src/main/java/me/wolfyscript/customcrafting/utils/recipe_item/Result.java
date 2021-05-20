@@ -8,6 +8,7 @@ import me.wolfyscript.customcrafting.utils.recipe_item.target.EmptyTarget;
 import me.wolfyscript.customcrafting.utils.recipe_item.target.ResultTarget;
 import me.wolfyscript.utilities.api.inventory.custom_items.CustomItem;
 import me.wolfyscript.utilities.api.inventory.custom_items.references.APIReference;
+import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonCreator;
 import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonIgnore;
 import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonInclude;
 import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Result<T extends ResultTarget> extends RecipeItemStack {
@@ -31,41 +33,76 @@ public class Result<T extends ResultTarget> extends RecipeItemStack {
     @JsonIgnore
     private final Map<UUID, CustomItem> cachedItems = new HashMap<>();
     private T target;
-    private List<ResultExtension> extensions;
+    /**
+     * Extensions are executed when the craft process is completed and allow to execute code.
+     * Default Extensions are the {@link me.wolfyscript.customcrafting.utils.recipe_item.extension.CommandResultExtension}, {@link me.wolfyscript.customcrafting.utils.recipe_item.extension.SoundResultExtension}, and {@link me.wolfyscript.customcrafting.utils.recipe_item.extension.MythicMobResultExtension}
+     */
+    private final List<ResultExtension> extensions;
+    /**
+     * Modifications allow to modify the result depending on the ingredients.
+     * This makes it possible to modify the NBT of the result, completely replace the result ItemStack, etc.
+     */
+    private final List<Modification> modifications;
+
+    @JsonCreator
+    private Result(@JsonProperty("target") T target, @JsonProperty("modifications") List<Modification> modifications, @JsonProperty("extensions") List<JsonNode> extensionNodes) {
+        super();
+        this.target = target;
+        this.modifications = modifications;
+        this.extensions = extensionNodes.stream().map(node -> {
+            NamespacedKey key = NamespacedKey.of(node.path("key").asText());
+            ResultExtension.Provider<?> provider = Registry.RESULT_EXTENSIONS.get(key);
+            if (provider != null) {
+                ResultExtension extension = provider.parse(node);
+                if (extension != null) {
+                    return extension;
+                }
+            }
+            CustomCrafting.inst().getLogger().log(Level.WARNING, "Failed to load Result Extension \"{0}\"", key);
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
 
     public Result() {
         super();
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
     public Result(Result<T> result) {
         super(result);
-        this.extensions = result.extensions;
+        this.extensions = result.extensions.stream().map(ResultExtension::clone).collect(Collectors.toList());
+        this.modifications = result.modifications.stream().map(Modification::clone).collect(Collectors.toList());
         this.target = result.target;
     }
 
     public Result(Material... materials) {
         super(materials);
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
     public Result(ItemStack... items) {
         super(items);
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
     public Result(NamespacedKey... tags) {
         super(tags);
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
     public Result(APIReference... references) {
         super(references);
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
     public Result(List<APIReference> references, Set<NamespacedKey> tags) {
         super(references, tags);
+        this.modifications = new ArrayList<>();
         this.extensions = new ArrayList<>();
     }
 
@@ -82,31 +119,8 @@ public class Result<T extends ResultTarget> extends RecipeItemStack {
         return target;
     }
 
-    @JsonProperty("extensions")
     public List<ResultExtension> getExtensions() {
         return extensions;
-    }
-
-    @JsonProperty("extensions")
-    private void setExtensions(List<JsonNode> extensionNodes) {
-        List<ResultExtension> resultExtensions = new ArrayList<>();
-        for (JsonNode node : extensionNodes) {
-            if (node.has("key")) {
-                NamespacedKey key = NamespacedKey.of(node.path("key").asText());
-                if (key != null) {
-                    ResultExtension.Provider<?> provider = Registry.RESULT_EXTENSIONS.get(key);
-                    if (provider != null) {
-                        ResultExtension extension = provider.parse(node);
-                        if (extension != null) {
-                            resultExtensions.add(extension);
-                            continue;
-                        }
-                        CustomCrafting.inst().getLogger().log(Level.WARNING, "Failed to load Result Extension {0}'", key);
-                    }
-                }
-            }
-        }
-        this.extensions = resultExtensions;
     }
 
     public void addExtension(ResultExtension extension) {
@@ -119,6 +133,10 @@ public class Result<T extends ResultTarget> extends RecipeItemStack {
 
     public void removeExtension(int index) {
         this.extensions.remove(index);
+    }
+
+    public List<Modification> getModifications() {
+        return modifications;
     }
 
     public RandomCollection<CustomItem> getRandomChoices(@Nullable Player player) {
