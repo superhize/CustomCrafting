@@ -9,7 +9,7 @@ import me.wolfyscript.customcrafting.recipes.types.elite_workbench.EliteCrafting
 import me.wolfyscript.customcrafting.recipes.types.workbench.AdvancedCraftingRecipe;
 import me.wolfyscript.customcrafting.utils.ItemLoader;
 import me.wolfyscript.customcrafting.utils.recipe_item.Ingredient;
-import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotResultTarget;
+import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotTarget;
 import me.wolfyscript.utilities.api.inventory.gui.GuiCluster;
 import me.wolfyscript.utilities.api.inventory.gui.GuiHandler;
 import me.wolfyscript.utilities.api.inventory.gui.GuiUpdate;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class CraftingRecipe<C extends CraftingRecipe<C>> extends CustomRecipe<C, SlotResultTarget> implements ICraftingRecipe {
+public abstract class CraftingRecipe<C extends CraftingRecipe<C>> extends CustomRecipe<C, SlotTarget> implements ICraftingRecipe {
 
     protected static final char[] LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
 

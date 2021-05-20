@@ -8,7 +8,7 @@ import me.wolfyscript.customcrafting.recipes.Types;
 import me.wolfyscript.customcrafting.recipes.types.CustomRecipe;
 import me.wolfyscript.customcrafting.utils.ItemLoader;
 import me.wolfyscript.customcrafting.utils.recipe_item.Ingredient;
-import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotResultTarget;
+import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotTarget;
 import me.wolfyscript.utilities.api.inventory.custom_items.CustomItem;
 import me.wolfyscript.utilities.api.inventory.gui.GuiCluster;
 import me.wolfyscript.utilities.api.inventory.gui.GuiHandler;
@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class CustomAnvilRecipe extends CustomRecipe<CustomAnvilRecipe, SlotResultTarget> {
+public class CustomAnvilRecipe extends CustomRecipe<CustomAnvilRecipe, SlotTarget> {
 
     private boolean blockRepair;
     private boolean blockRename;

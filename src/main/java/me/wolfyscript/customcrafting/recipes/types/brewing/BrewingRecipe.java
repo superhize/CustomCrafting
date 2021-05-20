@@ -10,7 +10,7 @@ import me.wolfyscript.customcrafting.recipes.types.CustomRecipe;
 import me.wolfyscript.customcrafting.utils.ItemLoader;
 import me.wolfyscript.customcrafting.utils.recipe_item.Ingredient;
 import me.wolfyscript.customcrafting.utils.recipe_item.Result;
-import me.wolfyscript.customcrafting.utils.recipe_item.target.FixedResultTarget;
+import me.wolfyscript.customcrafting.utils.recipe_item.target.FixedTarget;
 import me.wolfyscript.utilities.api.inventory.custom_items.CustomItem;
 import me.wolfyscript.utilities.api.inventory.gui.GuiCluster;
 import me.wolfyscript.utilities.api.inventory.gui.GuiHandler;
@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class BrewingRecipe extends CustomRecipe<BrewingRecipe, FixedResultTarget> {
+public class BrewingRecipe extends CustomRecipe<BrewingRecipe, FixedTarget> {
 
     private static final CustomItem placeHolderPotion = new CustomItem(Material.POTION).setDisplayName(ChatColor.convert("&6&lAny kind of potion!"));
 

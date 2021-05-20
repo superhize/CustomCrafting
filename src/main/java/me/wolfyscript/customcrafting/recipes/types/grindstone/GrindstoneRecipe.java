@@ -9,7 +9,7 @@ import me.wolfyscript.customcrafting.recipes.types.CustomRecipe;
 import me.wolfyscript.customcrafting.utils.ItemLoader;
 import me.wolfyscript.customcrafting.utils.recipe_item.Ingredient;
 import me.wolfyscript.customcrafting.utils.recipe_item.Result;
-import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotResultTarget;
+import me.wolfyscript.customcrafting.utils.recipe_item.target.SlotTarget;
 import me.wolfyscript.utilities.api.inventory.gui.GuiCluster;
 import me.wolfyscript.utilities.api.inventory.gui.GuiHandler;
 import me.wolfyscript.utilities.api.inventory.gui.GuiUpdate;
@@ -21,7 +21,7 @@ import me.wolfyscript.utilities.util.NamespacedKey;
 
 import java.io.IOException;
 
-public class GrindstoneRecipe extends CustomRecipe<GrindstoneRecipe, SlotResultTarget> {
+public class GrindstoneRecipe extends CustomRecipe<GrindstoneRecipe, SlotTarget> {
 
     private Ingredient inputTop, inputBottom;
     private int xp;

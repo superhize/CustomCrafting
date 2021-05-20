@@ -29,9 +29,9 @@ public abstract class ResultTarget {
         this.cases = cases;
     }
 
-    public abstract Optional<Result<NoneResultTarget>> get(@Nullable ItemStack[] ingredients);
+    public abstract Optional<Result<EmptyTarget>> get(@Nullable ItemStack[] ingredients);
 
-    protected Optional<Result<NoneResultTarget>> check(ItemStack itemStack) {
+    protected Optional<Result<EmptyTarget>> check(ItemStack itemStack) {
         return cases.stream().map(targetCase -> targetCase.check(itemStack)).filter(Optional::isPresent).findFirst().orElse(Optional.empty());
     }
 

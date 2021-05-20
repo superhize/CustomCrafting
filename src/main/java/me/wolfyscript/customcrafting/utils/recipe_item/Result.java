@@ -3,7 +3,8 @@ package me.wolfyscript.customcrafting.utils.recipe_item;
 import me.wolfyscript.customcrafting.CustomCrafting;
 import me.wolfyscript.customcrafting.Registry;
 import me.wolfyscript.customcrafting.utils.recipe_item.extension.ResultExtension;
-import me.wolfyscript.customcrafting.utils.recipe_item.target.NoneResultTarget;
+import me.wolfyscript.customcrafting.utils.recipe_item.modifications.Modification;
+import me.wolfyscript.customcrafting.utils.recipe_item.target.EmptyTarget;
 import me.wolfyscript.customcrafting.utils.recipe_item.target.ResultTarget;
 import me.wolfyscript.utilities.api.inventory.custom_items.CustomItem;
 import me.wolfyscript.utilities.api.inventory.custom_items.references.APIReference;
@@ -125,7 +126,7 @@ public class Result<T extends ResultTarget> extends RecipeItemStack {
     }
 
     public Result<?> get(ItemStack[] ingredients) {
-        Optional<Result<NoneResultTarget>> targetResult = target == null ? Optional.empty() : target.get(ingredients);
+        Optional<Result<EmptyTarget>> targetResult = target == null ? Optional.empty() : target.get(ingredients);
         if (targetResult.isPresent()) {
             return targetResult.get();
         }
