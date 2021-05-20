@@ -141,7 +141,7 @@ public class Result<T extends ResultTarget> extends RecipeItemStack {
         return (player == null ? getChoices() : getChoices(player)).stream().collect(RandomCollection.getCollector((rdmCollection, customItem) -> rdmCollection.add(customItem.getRarityPercentage(), customItem.clone())));
     }
 
-    public Result<?> get(ItemStack[] ingredients) {
+    public Result<?> get(@Nullable ItemStack[] ingredients) {
         Optional<Result<EmptyTarget>> targetResult = target == null ? Optional.empty() : target.get(ingredients);
         if (targetResult.isPresent()) {
             return targetResult.get();

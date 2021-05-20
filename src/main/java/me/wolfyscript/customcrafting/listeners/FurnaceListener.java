@@ -104,7 +104,7 @@ public class FurnaceListener implements Listener {
                                 assert customRecipe != null;
                                 if (customRecipe.getConditions().checkConditions(customRecipe, new Conditions.Data(null, event.getBlock(), null))) {
                                     event.setCancelled(false);
-                                    Result<?> result = customRecipe.getResult().get(new ItemStack[0]);
+                                    Result<?> result = customRecipe.getResult().get(null);
                                     result.executeExtensions(event.getBlock().getLocation(), true, null);
                                     if (result.size() > 1) {
                                         CustomItem item = result.getItem().orElse(new CustomItem(Material.AIR));
