@@ -5,11 +5,11 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public class SlotResultTarget extends ResultTarget {
+public class SlotTarget extends ResultTarget {
 
     private int slot;
 
-    public SlotResultTarget(int slot) {
+    public SlotTarget(int slot) {
         this.slot = slot;
     }
 
@@ -22,7 +22,7 @@ public class SlotResultTarget extends ResultTarget {
     }
 
     @Override
-    public Optional<Result<NoneResultTarget>> get(ItemStack[] ingredients) {
+    public Optional<Result<EmptyTarget>> get(ItemStack[] ingredients) {
         if (ingredients != null && slot > -1 && slot < ingredients.length) {
             return check(ingredients[slot]);
         }

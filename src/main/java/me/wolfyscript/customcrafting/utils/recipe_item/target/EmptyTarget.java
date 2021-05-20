@@ -5,10 +5,10 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public class FixedResultTarget extends ResultTarget {
+public class EmptyTarget extends ResultTarget {
 
     @Override
-    public Optional<Result<NoneResultTarget>> get(ItemStack[] ingredients) {
-        return ingredients == null ? Optional.empty() : check(ingredients[0]);
+    public Optional<Result<EmptyTarget>> get(ItemStack[] ingredients) {
+        return Optional.empty();
     }
 }
