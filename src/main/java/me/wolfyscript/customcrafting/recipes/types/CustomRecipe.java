@@ -14,6 +14,8 @@ import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.databind.ObjectM
 import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.databind.SerializerProvider;
 import me.wolfyscript.utilities.util.NamespacedKey;
 import me.wolfyscript.utilities.util.json.jackson.JacksonUtil;
+import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -152,6 +154,11 @@ public abstract class CustomRecipe<C extends CustomRecipe<C, T>, T extends Resul
     @Override
     public Result<T> getResult() {
         return result;
+    }
+
+    @Override
+    public Result<?> getResult(@Nullable ItemStack[] ingredients) {
+        return getResult().get(ingredients);
     }
 
     @Override

@@ -253,7 +253,7 @@ public class GrindStoneListener implements Listener {
         Result<?> result = null;
         CustomItem resultItem = new CustomItem(Material.AIR);
         if (foundRecipe != null) {
-            result = foundRecipe.getResult().get(inventoryView.getTopInventory().getStorageContents());
+            result = foundRecipe.getResult(inventoryView.getTopInventory().getStorageContents());
             resultItem = result.getItem(player).orElse(new CustomItem(Material.AIR));
         }
         return new Pair<>(resultItem, new GrindstoneData(foundRecipe, result, validItem, finalInputTop, finalInputBottom));

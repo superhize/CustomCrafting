@@ -98,7 +98,7 @@ public class FurnaceListener implements Listener {
                             CustomCookingRecipe<?, ?> cookingRecipe = (CustomCookingRecipe<?, ?>) iCustomRecipe;
                             if (cookingRecipe.checkConditions(new Conditions.Data(null, event.getBlock(), null))) {
                                 event.setCancelled(false);
-                                Result<?> result = cookingRecipe.getResult().get(new ItemStack[0]);
+                                Result<?> result = cookingRecipe.getResult(new ItemStack[0]);
                                 result.executeExtensions(event.getBlock().getLocation(), true, null);
                                 if (result.size() > 1) {
                                     CustomItem item = result.getItem().orElse(new CustomItem(Material.AIR));

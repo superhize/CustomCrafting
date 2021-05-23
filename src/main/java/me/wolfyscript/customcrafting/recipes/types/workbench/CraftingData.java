@@ -16,7 +16,7 @@ public class CraftingData {
 
     public CraftingData(CraftingRecipe<?> recipe, Map<Vec2d, CustomItem> foundItems, ItemStack[] matrix) {
         this.recipe = recipe;
-        this.result = recipe.getResult().get(matrix);
+        this.result = recipe.getResult(matrix);
         this.foundItems = foundItems;
     }
 

@@ -52,6 +52,8 @@ public interface ICustomRecipe<C extends ICustomRecipe<?, ?>, T extends ResultTa
 
     Result<T> getResult();
 
+    Result<?> getResult(@Nullable ItemStack[] ingredients);
+
     void setResult(Result<T> result);
 
     /**
