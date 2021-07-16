@@ -178,9 +178,6 @@ public class CustomCrafting extends JavaPlugin {
         registerListeners();
         registerCommands();
         registerInventories();
-        if (isDevEnv()) {
-            this.networkHandler.registerPackets();
-        }
 
         cauldrons = new Cauldrons(this);
         if (WolfyUtilities.hasPlugin("PlaceholderAPI")) {
