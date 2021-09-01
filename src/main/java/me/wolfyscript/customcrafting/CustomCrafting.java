@@ -51,7 +51,7 @@ import java.util.logging.Level;
 public class CustomCrafting extends JavaPlugin {
 
     //Only used for displaying which version it is.
-    private static final boolean PREMIUM = true;
+    private static final boolean PREMIUM = false;
     private static final String ENVIRONMENT = System.getProperties().getProperty("com.wolfyscript.env", "PROD");
 
     public static final NamespacedKey ADVANCED_CRAFTING_TABLE = new NamespacedKey(NamespacedKeyUtils.NAMESPACE, "advanced_crafting_table");
