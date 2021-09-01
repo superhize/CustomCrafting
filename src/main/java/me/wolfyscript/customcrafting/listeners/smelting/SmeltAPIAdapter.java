@@ -61,9 +61,8 @@ public abstract class SmeltAPIAdapter {
             default -> null;
         }, null, block);
         if (currentResultItem != null) {
-            if (!itemResult.isSimilar(currentResultItem)) {
-                event.setCancelled(true);
-            } else {
+            event.setCancelled(true);
+            if (itemResult.isSimilar(currentResultItem)) {
                 int nextAmount = currentResultItem.getAmount() + itemResult.getAmount();
                 if (nextAmount <= currentResultItem.getMaxStackSize() && !ItemUtils.isAirOrNull(inventory.getSmelting())) {
                     inventory.getSmelting().setAmount(inventory.getSmelting().getAmount() - 1);
