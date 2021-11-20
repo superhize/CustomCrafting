@@ -157,9 +157,9 @@ public class CauldronListener implements Listener {
                                                             synchronized (cauldrons.getCauldrons()) {
                                                                 entry.getValue().add(new Cauldron(cauldronPreCookEvent));
                                                             }
-                                                            for (int i = 0; i < recipe.getIngredient().size() && i < validItems.size(); i++) {
+                                                            for (int i = 0; i < recipe.getIngredients().size() && i < validItems.size(); i++) {
                                                                 var itemEntity = validItems.get(i);
-                                                                var customItem = recipe.getIngredient().getChoices().get(i);
+                                                                var customItem = recipe.getIngredients().get(i);
                                                                 customItem.remove(itemEntity.getItemStack(), customItem.getAmount(), itemEntity.getLocation().add(0.0, 0.5, 0.0));
                                                             }
                                                         }

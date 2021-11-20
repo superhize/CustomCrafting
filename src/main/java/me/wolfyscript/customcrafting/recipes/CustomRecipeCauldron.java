@@ -22,10 +22,16 @@
 
 package me.wolfyscript.customcrafting.recipes;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Queues;
+import com.google.common.collect.Streams;
 import me.wolfyscript.customcrafting.data.CCCache;
 import me.wolfyscript.customcrafting.gui.recipebook.ButtonContainerIngredient;
 import me.wolfyscript.customcrafting.recipes.conditions.Condition;
 import me.wolfyscript.customcrafting.recipes.conditions.PermissionCondition;
+import me.wolfyscript.customcrafting.recipes.data.CauldronData;
+import me.wolfyscript.customcrafting.recipes.data.CraftingData;
+import me.wolfyscript.customcrafting.recipes.data.IngredientData;
 import me.wolfyscript.customcrafting.recipes.items.Ingredient;
 import me.wolfyscript.customcrafting.recipes.items.Result;
 import me.wolfyscript.customcrafting.utils.ItemLoader;
@@ -40,19 +46,25 @@ import me.wolfyscript.utilities.libraries.com.fasterxml.jackson.databind.Seriali
 import me.wolfyscript.utilities.util.NamespacedKey;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
+
+    private static final int MAX_INGREDIENTS = 6;
+    private static final String MAX_INGREDIENTS_ERR = "Recipe cannot have more than " + MAX_INGREDIENTS + " ingredients!";
 
     private int cookingTime;
     private int waterLevel;
     private float xp;
     private CustomItem handItem;
-    private Ingredient ingredients;
+    private List<Ingredient> ingredients;
+    private int nonEmptyIngredientSize;
+    private boolean hasAllowedEmptyIngredient;
     private boolean dropItems;
     private boolean needsFire;
     private boolean needsWater;
@@ -69,13 +81,25 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
             this.dropItems = dropNode.path("enabled").asBoolean();
             this.handItem = ItemLoader.load(dropNode.path("handItem"));
         }
-        this.ingredients = ItemLoader.loadIngredient(node.path("ingredients"));
+        JsonNode ingredientsNode = node.path("ingredients");
+        if (ingredientsNode.isObject()) {
+            //Convert the old single Ingredient to the new multi Ingredient system.
+            Ingredient ingredient = ItemLoader.loadIngredient(node.path("ingredients"));
+            setIngredients(ingredient.getItems().stream().map(Ingredient::new).toList());
+            if(!ingredient.getTags().isEmpty()) {
+                addIngredients(ingredient.getTags().stream().map(Ingredient::new).collect(Collectors.toList()));
+            }
+        } else {
+            Preconditions.checkArgument(ingredientsNode.isArray(), "Error reading ingredients! Ingredient node must be an Array!");
+            setIngredients(Streams.stream(ingredientsNode.elements()).map(ItemLoader::loadIngredient).toList());
+        }
+
     }
 
     public CustomRecipeCauldron(NamespacedKey key) {
         super(key);
         this.result = new Result();
-        this.ingredients = new Ingredient();
+        this.ingredients = List.of();
         this.dropItems = true;
         this.xp = 0;
         this.cookingTime = 80;
@@ -88,7 +112,7 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
     public CustomRecipeCauldron(CustomRecipeCauldron customRecipeCauldron) {
         super(customRecipeCauldron);
         this.result = customRecipeCauldron.getResult();
-        this.ingredients = customRecipeCauldron.getIngredient();
+        setIngredients(customRecipeCauldron.getIngredients());
         this.dropItems = customRecipeCauldron.dropItems();
         this.xp = customRecipeCauldron.getXp();
         this.cookingTime = customRecipeCauldron.getCookingTime();
@@ -147,19 +171,53 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
     }
 
     public List<Item> checkRecipe(List<Item> items) {
-        List<Item> validItems = new ArrayList<>();
-        for (CustomItem customItem : getIngredient().getChoices()) {
-            for (Item item : items) {
-                if (customItem.isSimilar(item.getItemStack(), isExactMeta()) && customItem.getAmount() == item.getItemStack().getAmount()) {
-                    validItems.add(item);
-                    break;
+        Map<Integer, IngredientData> dataMap = new HashMap<>();
+        Deque<Ingredient> queue = Queues.newArrayDeque(this.ingredients);
+        List<Ingredient> selectedIngreds = new ArrayList<>();
+
+        for (int i = 0; i < items.size(); i++) { //First we go through all the items in the grid.
+            var recipeSlot = checkIngredient(queue, dataMap, items.get(i).getItemStack()); //Get the slot of the ingredient or -1 if non is found.
+            if (recipeSlot == null) {
+                if (i == 0 || selectedIngreds.isEmpty()) { //We can directly end the check if it fails for the first slot.
+                    return null;
                 }
+                if (selectedIngreds.size() > i) {
+                    //Add the previous selected recipe slot back into the queue.
+                    queue.addLast(selectedIngreds.get(i));
+                    selectedIngreds.remove(i);
+                }
+                //Go back one inventory slot
+                i -= 2;
+                continue;
+            } else if (selectedIngreds.size() > i) {
+                //Add the previous selected recipe slot back into the queue, so we don't miss it.
+                queue.addLast(selectedIngreds.get(i));
+                selectedIngreds.remove(i);
             }
+            //Add the newly found slot to the used slots.
+            selectedIngreds.add(recipeSlot);
         }
-        if (validItems.size() >= ingredients.size()) {
-            return validItems;
+        if (queue.isEmpty() || (hasAllowedEmptyIngredient && (items.size() == ingredients.size() - queue.size()) && queue.stream().allMatch(Ingredient::isAllowEmpty)) ) {
+            //The empty ingredients can be very tricky in shapeless recipes and shouldn't be used... but might as well implement it anyway.
+            return new CauldronData(this, dataMap);
         }
-        return new ArrayList<>();
+        return null;
+    }
+
+    protected Ingredient checkIngredient(Deque<Ingredient> deque, Map<Integer, IngredientData> dataMap, ItemStack item) {
+        int size = deque.size();
+        for (int qj = 0; qj < size; qj++) {
+            var ingredient = deque.removeFirst(); //Take the first key out of the queue.
+            Optional<CustomItem> validItem = ingredient.check(item, isExactMeta());
+            if (validItem.isPresent()) {
+                var key = this.ingredients.indexOf(ingredient);
+                dataMap.put(key, new IngredientData(key, ingredient, validItem.get(), item));
+                return ingredient;
+            }
+            //Check failed. Let's add the key back into the queue. (To the end, so we don't check it again and again...)
+            deque.addLast(ingredient);
+        }
+        return null;
     }
 
     public CustomItem getHandItem() {
@@ -175,21 +233,70 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
         return RecipeType.CAULDRON;
     }
 
-    public Ingredient getIngredient() {
-        return getIngredient(0);
+    public List<Ingredient> getIngredients() {
+        return ingredients;
     }
 
     @Override
     public Ingredient getIngredient(int slot) {
-        return this.ingredients;
+        return this.ingredients.get(slot);
     }
 
-    public void setIngredient(Ingredient ingredients) {
-        setIngredient(0, ingredients);
+    public void addIngredients(Ingredient... ingredients) {
+        addIngredients(Arrays.asList(ingredients));
     }
 
+    public void addIngredients(List<Ingredient> ingredients) {
+        Preconditions.checkArgument(this.ingredients.size() + ingredients.size() <= MAX_INGREDIENTS, MAX_INGREDIENTS_ERR);
+        List<Ingredient> currentIngredients = new ArrayList<>(this.ingredients);
+        currentIngredients.addAll(ingredients);
+        setIngredients(currentIngredients);
+    }
+
+    public void addIngredient(int count, Ingredient ingredient) {
+        Preconditions.checkArgument(ingredients.size() + count <= MAX_INGREDIENTS, MAX_INGREDIENTS_ERR);
+        List<Ingredient> currentIngredients = new ArrayList<>(this.ingredients);
+        for (int i = 0; i < count; i++) {
+            currentIngredients.add(ingredient);
+        }
+        setIngredients(currentIngredients);
+    }
+
+    public void setIngredients(List<Ingredient> ingredients) {
+        setIngredients(ingredients.stream());
+    }
+
+    public void setIngredients(Stream<Ingredient> ingredients) {
+        List<Ingredient> ingredientsNew = ingredients.filter(ingredient -> ingredient != null && !ingredient.isEmpty()).toList();
+        Preconditions.checkArgument(!ingredientsNew.isEmpty(), "Invalid ingredients! Recipe requires non-air ingredients!");
+        this.ingredients = ingredientsNew;
+        this.nonEmptyIngredientSize = (int) this.ingredients.stream().filter(ingredient -> !ingredient.isAllowEmpty()).count();
+        this.hasAllowedEmptyIngredient = this.nonEmptyIngredientSize != this.ingredients.size();
+    }
+
+    /**
+     * @deprecated The recipe can have multiple Ingredients now!
+     * @return Always returns the first Ingredient in the List.
+     */
+    @Deprecated(forRemoval = true)
+    public Ingredient getIngredient() {
+        return getIngredient(0);
+    }
+
+    /**
+     * @deprecated Redirects to {@link #addIngredients(Ingredient...)}
+     */
+    @Deprecated(forRemoval = true)
+    public void setIngredient(Ingredient ingredient) {
+        addIngredients(ingredient);
+    }
+
+    /**
+     * @deprecated Redirects to {@link #addIngredients(Ingredient...)}
+     */
+    @Deprecated(forRemoval = true)
     private void setIngredient(int slot, Ingredient ingredient) {
-        this.ingredients = ingredient;
+        addIngredients(ingredient);
     }
 
     @Override
@@ -202,7 +309,7 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
         super.writeToJson(gen, serializerProvider);
         gen.writeObjectFieldStart("dropItems");
         gen.writeBooleanField("enabled", dropItems);
-        gen.writeObjectField("handItem", handItem.getApiReference());
+        gen.writeObjectField("handItem", handItem == null ? null : handItem.getApiReference());
         gen.writeEndObject();
         gen.writeNumberField("exp", xp);
         gen.writeNumberField("cookingTime", cookingTime);
