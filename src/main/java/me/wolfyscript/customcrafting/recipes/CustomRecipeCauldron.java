@@ -170,13 +170,14 @@ public class CustomRecipeCauldron extends CustomRecipe<CustomRecipeCauldron> {
         this.dropItems = dropItems;
     }
 
-    public List<Item> checkRecipe(List<Item> items) {
+    public CauldronData checkRecipe(List<Item> items) {
         Map<Integer, IngredientData> dataMap = new HashMap<>();
         Deque<Ingredient> queue = Queues.newArrayDeque(this.ingredients);
         List<Ingredient> selectedIngreds = new ArrayList<>();
 
         for (int i = 0; i < items.size(); i++) { //First we go through all the items in the grid.
-            var recipeSlot = checkIngredient(queue, dataMap, items.get(i).getItemStack()); //Get the slot of the ingredient or -1 if non is found.
+            var item = items.get(i);
+            var recipeSlot = checkIngredient(queue, dataMap, item.getItemStack()); //Get the slot of the ingredient or -1 if non is found.
             if (recipeSlot == null) {
                 if (i == 0 || selectedIngreds.isEmpty()) { //We can directly end the check if it fails for the first slot.
                     return null;
